@@ -1,6 +1,6 @@
 from re import I
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 app = FastAPI()
 
 @app.get("/")
@@ -59,12 +59,24 @@ def get_products(category: str):
     }
 """
 
+
+
 class User(BaseModel):
     name: str
-    age: int
+    age: int = Field(ge=0, le=100)
     email: str
+    password: str
 
-@app.post("/users")
+class UserResponse(BaseModel):
+    name: str
+    email: str
+    age : int
+
+class UserCreateResponse(BaseModel):
+    message: str
+    user : UserResponse
+
+@app.post("/users", response_model=UserCreateResponse)
 def create_user(user: User):
     return {
         "message": "User created successfully",
@@ -72,11 +84,19 @@ def create_user(user: User):
     }
 
 class Product(BaseModel):
-    name: str
-    price: float
-    category: str
+    name: str = Field(min_length=2)
+    price: float = Field(gt=0) 
+    category: str = Field(min_length=2)
 
-@app.post("/products")
+class ProductResponse(BaseModel):
+    name: str
+    category:str
+
+class ProductCreateResponse(BaseModel):
+    message: str
+    product: ProductResponse
+    
+@app.post("/products", response_model=ProductCreateResponse)
 def create_product(product: Product):
     return {
         "message": "Product created successfully",
